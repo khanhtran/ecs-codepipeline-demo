@@ -282,15 +282,16 @@ export class BlueGreenUsingEcsStack extends cdk.Stack {
             taskRole: ecsTaskRole,
             executionRole: ecsTaskRole
         });
+        const appLogGroup = new log.LogGroup(this, "demoAppLogGroup", {
+            logGroupName: BlueGreenUsingEcsStack.ECS_APP_LOG_GROUP_NAME,
+            removalPolicy: RemovalPolicy.DESTROY
+        })
         const containerDefinition = taskDefinition.addContainer("demoAppContainer", {
             image: ContainerImage.fromEcrRepository(ecrRepo, "latest"),
-            logging: new ecs.AwsLogDriver({
-                logGroup: new log.LogGroup(this, "demoAppLogGroup", {
-                    logGroupName: BlueGreenUsingEcsStack.ECS_APP_LOG_GROUP_NAME,
-                    removalPolicy: RemovalPolicy.DESTROY
-                }),
-                streamPrefix: BlueGreenUsingEcsStack.ECS_APP_NAME
-            }),
+            // logging: new ecs.AwsLogDriver({
+            //     logGroup: appLogGroup,
+            //     streamPrefix: BlueGreenUsingEcsStack.ECS_APP_NAME
+            // }),
             dockerLabels: {
                 name: BlueGreenUsingEcsStack.ECS_APP_NAME
             }
@@ -307,7 +308,7 @@ export class BlueGreenUsingEcsStack extends cdk.Stack {
             cluster: cluster,
             taskDefinition: sampleTaskDefinition,
             healthCheckGracePeriod: Duration.seconds(10),
-            desiredCount: 3,
+            desiredCount: 1,
             deploymentController: {
                 type: DeploymentControllerType.CODE_DEPLOY
             },
