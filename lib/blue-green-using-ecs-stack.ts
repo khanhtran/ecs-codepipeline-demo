@@ -32,7 +32,7 @@ export class BlueGreenUsingEcsStack extends cdk.Stack {
 
     static readonly ECS_TASK_FAMILY_NAME = "demo-app";
     static readonly ECS_APP_NAME = "demo-app";
-    static readonly ECS_APP_LOG_GROUP_NAME = "/ecs/demo-app";
+    static readonly ECS_APP_LOG_GROUP_NAME = "/ecs/nginx-example";
 
     static readonly DUMMY_TASK_FAMILY_NAME = "sample-app";
     static readonly DUMMY_APP_NAME = "sample-app";
@@ -282,16 +282,15 @@ export class BlueGreenUsingEcsStack extends cdk.Stack {
             taskRole: ecsTaskRole,
             executionRole: ecsTaskRole
         });
-        const appLogGroup = new log.LogGroup(this, "demoAppLogGroup", {
-            logGroupName: BlueGreenUsingEcsStack.ECS_APP_LOG_GROUP_NAME,
-            removalPolicy: RemovalPolicy.DESTROY
-        })
         const containerDefinition = taskDefinition.addContainer("demoAppContainer", {
             image: ContainerImage.fromEcrRepository(ecrRepo, "latest"),
-            // logging: new ecs.AwsLogDriver({
-            //     logGroup: appLogGroup,
-            //     streamPrefix: BlueGreenUsingEcsStack.ECS_APP_NAME
-            // }),
+            logging: new ecs.AwsLogDriver({
+                logGroup: new log.LogGroup(this, "demoAppLogGroup", {
+                    logGroupName: BlueGreenUsingEcsStack.ECS_APP_LOG_GROUP_NAME,
+                    removalPolicy: RemovalPolicy.DESTROY
+                }),
+                streamPrefix: BlueGreenUsingEcsStack.ECS_APP_NAME
+            }),
             dockerLabels: {
                 name: BlueGreenUsingEcsStack.ECS_APP_NAME
             }
